@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление товарами</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🛍️ Система управления товарами</h1>
+    <p class="subtitle">Добавляйте, редактируйте и удаляйте товары</p>
+  </header>
+
+  <main>
+    <!-- Форма добавления/редактирования товара -->
+    <section class="form-section">
+      <h2 th:text="${editMode} ? '✏️ Редактировать товар' : '➕ Добавить новый товар'">Добавить товар</h2>
+
+      <form th:action="${editMode} ? @{/products/update/{id}(id=${product.id})} : @{/products/add}"
+            th:object="${product}"
+            method="post"
+            class="product-form">
+
+        <div class="form-group">
+          <label for="name">Название товара:</label>
+          <input type="text"
+                 id="name"
+                 th:field="*{name}"
+                 placeholder="Например: Ноутбук Dell XPS 15"
+                 class="form-input">
+          <span th:if="${#fields.hasErrors('name')}"
+                th:errors="*{name}"
+                class="error-message"></span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="price">Цена (₽):</label>
+            <input type="number"
+                   id="price"
+                   th:field="*{price}"
+                   step="0.01"
+                   placeholder="0.00"
+                   class="form-input">
+            <span th:if="${#fields.hasErrors('price')}"
+                  th:errors="*{price}"
+                  class="error-message"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="stockQuantity">Количество на складе:</label>
+            <input type="number"
+                   id="stockQuantity"
+                   th:field="*{stockQuantity}"
+                   placeholder="0"
+                   class="form-input">
+            <span th:if="${#fields.hasErrors('stockQuantity')}"
+                  th:errors="*{stockQuantity}"
+                  class="error-message"></span>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn btn-primary">
+            <span th:text="${editMode} ? '💾 Сохранить изменения' : '➕ Добавить товар'">Добавить</span>
+          </button>
+          <a th:if="${editMode}" th:href="@{/products}" class="btn btn-secondary">❌ Отмена</a>
+        </div>
+      </form>
+    </section>
+
+    <!-- Таблица товаров -->
+    <section class="table-section">
+      <h2>📦 Список товаров</h2>
+
+      <div th:if="${#lists.isEmpty(products)}" class="empty-state">
+        <p>📭 Товары отсутствуют. Добавьте первый товар!</p>
+      </div>
+
+      <div th:unless="${#lists.isEmpty(products)}" class="table-wrapper">
+        <table class="products-table">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Цена</th>
+            <th>Количество</th>
+            <th>Действия</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="prod : ${products}" th:classappend="${prod.stockQuantity < 10} ? 'low-stock' : ''">
+            <td th:text="${prod.id}">1</td>
+            <td th:text="${prod.name}">Название товара</td>
+            <td th:text="${#numbers.formatDecimal(prod.price, 0, 'COMMA', 2, 'POINT')} + ' ₽'">1000.00 ₽</td>
+            <td>
+                                    <span class="stock-badge"
+                                          th:classappend="${prod.stockQuantity < 10} ? 'badge-warning' : 'badge-success'"
+                                          th:text="${prod.stockQuantity}">50</span>
+            </td>
+            <td class="actions">
+              <a th:href="@{/products/edit/{id}(id=${prod.id})}"
+                 class="btn-action btn-edit"
+                 title="Редактировать">✏️</a>
+              <a th:href="@{/products/delete/{id}(id=${prod.id})}"
+                 class="btn-action btn-delete"
+                 title="Удалить"
+                 onclick="return confirm('Вы уверены, что хотите удалить этот товар?')">🗑️</a>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+
+        <div class="table-footer">
+          <p>Всего товаров: <strong th:text="${#lists.size(products)}">0</strong></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Система управления товарами | Сделано с Spring Boot & Thymeleaf</p>
+  </footer>
+</div>
+</body>
+</html>
